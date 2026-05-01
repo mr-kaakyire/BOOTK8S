@@ -8,7 +8,7 @@ The script takes care of preparing each machine — things like setting hostname
 ## Goals and Design Philosophy
 Setting up Kubernetes the hard way is a humbling experience. After going through the process manually — configuring nodes one by one, debugging networking issues, chasing down the right package versions — the natural next thought is: there has to be a better way to do this.
 Most cloud providers offer managed Kubernetes solutions (EKS, GKE, AKE) that abstract all of this away. But managed solutions come with a price tag that adds up quickly, especially for personal projects, learning environments, or teams that just want full control over their infrastructure without paying a premium for it.
-I looked around for tools that fully automate bare Kubernetes cluster setup on your own infrastructure. Maybe I didn't look hard enough — or maybe I just wanted to build it myself and learn in the process. Either way, K8BOOT was born out of that gap.
+I looked around for tools that fully automate bare Kubernetes cluster setup on your own infrastructure. Maybe I didn't look hard enough — or maybe I just wanted to build it myself and learn in the process. Either way, BOOTK8S was born out of that gap.
 This project was built alongside my own learning journey with Kubernetes. Every problem the script solves is a problem I actually ran into. Every fix documented here is a fix I had to figure out myself. Because of that, the project is intentionally beginner friendly — the README doesn't just tell you what to do, it explains why each step exists and what goes wrong when it doesn't happen correctly.
 
 The script is designed to be:
