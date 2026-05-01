@@ -1,0 +1,22 @@
+cluster:
+  pod_network_cidr: 10.244.0.0/16
+  kubernetes_version: v1.32
+
+ssh:
+  key_path: /home/admin/.ssh/kube-node-key.pem
+  user: admin
+
+nodes:
+  control_plane:
+    hostname: k8s-control-plane
+    public_ip: 18.223.33.240
+    private_ip: 172.31.33.97
+
+  workers:
+    - hostname: k8s-worker-01
+      public_ip: 18.191.42.32
+      private_ip: 172.31.35.254
+
+    - hostname: k8s-worker-02
+      public_ip: 3.134.77.164
+      private_ip: 172.31.34.223
