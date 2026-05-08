@@ -100,6 +100,7 @@ All nodes must be able to reach each other over a network. The following ports m
 | Port | Protocol | Direction | Purpose |
 |------|----------|-----------|---------|
 | 6443 | TCP | Workers → Control plane | Kubernetes API server |
+| 10250 | TCP | Control plane → Workers | Kubelet API (used by control plane to reach worker kubelets) |
 | 30000–32767 | TCP | External → Workers | NodePort services |
 
 How you open these ports depends on your platform:

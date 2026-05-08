@@ -32,7 +32,10 @@ init_control_plane() {
     # IDEMPOTENT: -sf forces overwrite, || true prevents exit on harmless errors
     run_step "Fixing CNI plugin path" \
         "mkdir -p /usr/lib/cni && ln -sf /opt/cni/bin/* /usr/lib/cni/ 2>/dev/null || true && systemctl restart kubelet"
-
+    for i in $(seq 0 $((WORKER_COUNT - 1))); do
+        run_step "Fixing CNI plugin path on ${WORKER_HOSTNAMES[$i]}" \
+            "run_remote '${WORKER_PUBLIC_IPS[$i]}' 'mkdir -p /usr/lib/cni && ln -sf /opt/cni/bin/* /usr/lib/cni/ 2>/dev/null || true && systemctl restart kubelet'"
+    done
     log_success "Control plane initialised"
 }
 
