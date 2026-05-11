@@ -1,4 +1,4 @@
-# k8s-setup
+# BOOTK8S
 
 A bash script that automates the deployment of a production-ready multi-node Kubernetes cluster. Driven entirely by a single YAML config file, it handles everything from OS configuration and package installation to control plane initialisation and worker node joining — all executed from the control plane with a single command.
 
