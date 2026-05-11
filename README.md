@@ -240,7 +240,7 @@ This distinction is critical and a common source of errors:
 - **`private_ip`** — used in `/etc/hosts` and passed to `kubeadm init`. All cluster traffic travels over the private network. If this is wrong, the join command will point at the wrong address and workers will fail to join
 - **`public_ip`** — only used by the script to SSH into worker nodes during setup. Once setup is complete, public IPs are never used by Kubernetes
 
-If your infrastructure does not have separate public and private IPs (all traffic goes over one interface), use the same IP for both fields.
+NOTE: If your nodes don't exist in the same local network, use the same publicIP for both fields.
 
 Before running the script, verify each node's private IP with:
 ```bash
