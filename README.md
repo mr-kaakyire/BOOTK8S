@@ -1,15 +1,12 @@
-# BOOTK8S
+# k8s-setup
 
-A bash script that automates standing up a multi-node Kubernetes cluster from scratch. You fill in a YAML config file with your node IPs and SSH key, run one command on the control plane, and walk away with a working cluster.
-The script takes care of preparing each machine — things like setting hostnames, disabling swap, configuring kernel networking settings, and installing the required packages — then initialises the control plane, installs the pod network, and joins all your worker nodes automatically.
+A bash script that automates the deployment of a production-ready multi-node Kubernetes cluster. Driven entirely by a single YAML config file, it handles everything from OS configuration and package installation to control plane initialisation and worker node joining — all executed from the control plane with a single command.
 
 ---
 
 ## Goals and Design Philosophy
-Setting up Kubernetes the hard way is a humbling experience. After going through the process manually — configuring nodes one by one, debugging networking issues, chasing down the right package versions — the natural next thought is: there has to be a better way to do this.
-Most cloud providers offer managed Kubernetes solutions (EKS, GKE, AKE) that abstract all of this away. But managed solutions come with a price tag that adds up quickly, especially for personal projects, learning environments, or teams that just want full control over their infrastructure without paying a premium for it.
-I looked around for tools that fully automate bare Kubernetes cluster setup on your own infrastructure. Maybe I didn't look hard enough — or maybe I just wanted to build it myself and learn in the process. Either way, BOOTK8S was born out of that gap.
-This project was built alongside my own learning journey with Kubernetes. Every problem the script solves is a problem I actually ran into. Every fix documented here is a fix I had to figure out myself. Because of that, the project is intentionally beginner friendly — the README doesn't just tell you what to do, it explains why each step exists and what goes wrong when it doesn't happen correctly.
+
+The primary goal of this script is to **fully automate Kubernetes cluster deployment** so that standing up a new cluster requires nothing more than filling in a config file and running one command.
 
 The script is designed to be:
 
@@ -100,7 +97,9 @@ All nodes must be able to reach each other over a network. The following ports m
 | Port | Protocol | Direction | Purpose |
 |------|----------|-----------|---------|
 | 6443 | TCP | Workers → Control plane | Kubernetes API server |
-| 10250 | TCP | Control plane → Workers | Kubelet API (used by control plane to reach worker kubelets) |
+| 10250 | TCP | Control plane → Workers | Kubelet API |
+| 2379–2380 | TCP | Internal | etcd (control plane only) |
+| 8472 | UDP | All nodes → All nodes | Flannel VXLAN overlay network |
 | 30000–32767 | TCP | External → Workers | NodePort services |
 
 How you open these ports depends on your platform:
@@ -240,12 +239,38 @@ This distinction is critical and a common source of errors:
 - **`private_ip`** — used in `/etc/hosts` and passed to `kubeadm init`. All cluster traffic travels over the private network. If this is wrong, the join command will point at the wrong address and workers will fail to join
 - **`public_ip`** — only used by the script to SSH into worker nodes during setup. Once setup is complete, public IPs are never used by Kubernetes
 
-NOTE: If your nodes don't exist in the same local network, use the same publicIP for both fields.
+If your infrastructure does not have separate public and private IPs (all traffic goes over one interface), use the same IP for both fields.
 
 Before running the script, verify each node's private IP with:
 ```bash
 hostname -I
 ```
+
+### Nodes Without a Private Network
+
+If your nodes are not on the same private network — for example they are on different cloud providers, different VPCs, or different data centres — then there is no private network between them and all traffic must travel over public IPs.
+
+In this case, use the same IP for both `public_ip` and `private_ip`:
+
+```yaml
+nodes:
+  control_plane:
+    hostname: k8s-control-plane
+    public_ip: 3.134.90.138
+    private_ip: 3.134.90.138    # same — no private network
+
+  workers:
+    - hostname: k8s-worker-01
+      public_ip: 3.137.203.9
+      private_ip: 3.137.203.9   # same — no private network
+```
+
+Be aware of the implications of this:
+
+- **All cluster traffic travels over the public internet** — node-to-node communication, pod networking, and the API server are all exposed. This is slower, may incur egress costs depending on your provider, and is a security risk
+- **Firewall rules must allow public traffic on cluster ports** — port 6443 and the Flannel VXLAN port (8472 UDP) can no longer be restricted to a private CIDR, meaning they are reachable from the internet
+
+This setup is only recommended for quick testing. For anything more serious, the right solution is to connect your nodes over a private network first using a VPN tool like **WireGuard** or **Tailscale**, then use the VPN-assigned IPs as the `private_ip` values. This gives you a secure private network across any infrastructure regardless of where the machines physically live.
 
 ### Adding More Workers
 
